@@ -103,6 +103,8 @@ public class Server {
                 case END_GAME:
                     endGameOption(clientHandler);
                     break;
+                default:
+                    break;
             }
         }
     }
@@ -139,6 +141,7 @@ public class Server {
             catch(Exception e){
                 System.out.println("The given value is not a number! Try again.");
             }
+            ClientHandler.refreshServerScreen();
         }
         return choice;
     }

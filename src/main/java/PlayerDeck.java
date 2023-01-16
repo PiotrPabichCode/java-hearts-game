@@ -60,4 +60,8 @@ public class PlayerDeck {
     public ArrayList<Card> getDeck() {
         return deck;
     }
+
+    public Player getPlayer() {
+        return player;
+    }
 }

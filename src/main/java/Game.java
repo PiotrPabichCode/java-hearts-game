@@ -55,9 +55,18 @@ public class Game {
             }
             isActive = true;
         }
-        broadcastMessage("OUTSIDE LOOP");
+        deletePlayers();
+//        broadcastMessage("OUTSIDE LOOP");
     }
 
+    void deletePlayers() {
+        for(int i = 0; i < players.size(); i++) {
+            ClientHandler clientHandler = players.get(i).getClientHandler();
+            clientHandler.getRoom(roomNumber).decreaseSize();
+            clientHandler.setRoomNumber(clientHandler.NO_ROOM);
+        }
+        players.clear();
+    }
     boolean checkEnd() {
         if(deck.getDeck().size() == 0) {
             isActive = false;
@@ -91,26 +100,23 @@ public class Game {
             players.get(i).getClientHandler().unblockReader();
         }
     }
-    void endRound(boolean isServer, boolean isRandom) {
-        if(round > TOTAL_ROUNDS) {
-            isActive = false;
-            if(isServer) {
-                serverAction = true;
-                unblockReaders();
-            } else {
-                serverAction = false;
-            }
-            return;
-        }
-        if(serverAction) {
+
+    void endLastRound(boolean isServer) {
+        isActive = false;
+        if(isServer) {
+            serverAction = true;
+            unblockReaders();
+        } else {
             serverAction = false;
-            return;
         }
+    }
+
+    void endNormalRound(boolean isServer, boolean isRandom) {
         if(isServer) {
             serverAction = true;
         }
         broadcastMessage("---------------------------------------\n" +
-                         "ROUND NUMBER " + round + " ENDED");
+                "ROUND NUMBER " + round + " ENDED");
         giveRandomPoints();
         clearPlayerDecks();
         deck.setCurrentCardType();
@@ -120,6 +126,17 @@ public class Game {
         if(!isRandom) {
             unblockReaders();
         }
+    }
+    void endRound(boolean isServer, boolean isRandom) {
+        if(round > TOTAL_ROUNDS) {
+            endLastRound(isServer);
+            return;
+        }
+        if(serverAction) {
+            serverAction = false;
+            return;
+        }
+        endNormalRound(isServer, isRandom);
     }
 
     void randomEndGame() {
@@ -134,7 +151,6 @@ public class Game {
         broadcastMessage("-----------------------------------------\n" +
                          "Game ended\n");
         displayPoints(true);
-//        unblockReaders();
         resetGame();
     }
 
@@ -149,7 +165,9 @@ public class Game {
                 player.getClientHandler().sendMessage(message);
             }
         }
-        ClientHandler.refreshServerScreen();
+        if(isPlayers) {
+            ClientHandler.refreshServerScreen();
+        }
     }
 
     void calculatePoints(ArrayList<PickedCard> cards) {
@@ -298,6 +316,18 @@ public class Game {
             broadcastMessage(message);
         }
         ClientHandler.refreshServerScreen();
+    }
+
+    public int getRoomNumber() {
+        return roomNumber;
+    }
+
+    public int getRound() {
+        return round;
+    }
+
+    public ArrayList<Player> getPlayers() {
+        return players;
     }
 
     void resetGame() {

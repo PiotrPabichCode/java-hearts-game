@@ -18,7 +18,9 @@ public class ClientHandler implements Runnable {
     private BufferedWriter bufferedWriter;
     private String userName;
     private boolean isLogged = false;
-    private int roomNumber = -1;
+    final int NO_ROOM = -1;
+    private int roomNumber = NO_ROOM;
+
     final int REGISTER_ACCOUNT = 1;
     final int LOGIN_ACCOUNT = 2;
     final int MAX_PLAYERS_PER_ROOM = 3;
@@ -42,9 +44,11 @@ public class ClientHandler implements Runnable {
     @Override
     public void run() {
         validateUser();
-        pickRoom();
         while(socket.isConnected()) {
             try {
+                if(roomNumber == NO_ROOM) {
+                    pickRoom();
+                }
                 Thread.sleep(1000);
             } catch (InterruptedException e) {
                 e.printStackTrace();
@@ -67,25 +71,42 @@ public class ClientHandler implements Runnable {
         return null;
     }
 
+    void refreshMenuDisplay() {
+        sendMessage("Enter one of available options\n" +
+                    "0. Create new room");
+        displayRooms(false);
+    }
+
+    void refreshAllMenuDisplays() {
+        for(int i = 0; i < clientHandlers.size(); i++) {
+            ClientHandler clientHandler = clientHandlers.get(i);
+            if(clientHandler.roomNumber == NO_ROOM && clientHandler.isLogged) {
+                clientHandler.unblockReader();
+            }
+        }
+    }
+
     void pickRoom() {
         boolean next = false;
         while(!next) {
-            sendMessage("Enter one of available options\n" +
-                    "0. Create new room");
-            displayRooms(false);
-            int lowerBound = 0;
-            int upperBound = rooms.get(rooms.size() - 1).getNumber();
-            int option = getInteger(lowerBound,upperBound);
-            if(option == 0) {
-                next = createNewRoom();
-            } else {
-                next = checkPickedRoom(option);
+            int option = EXIT_VALUE;
+            while(option == EXIT_VALUE) {
+                refreshMenuDisplay();
+                int lowerBound = 0;
+                int upperBound = rooms.size();
+                option = getInteger(lowerBound,upperBound);
+                if(option == 0) {
+                    next = createNewRoom();
+                } else if(option != EXIT_VALUE) {
+                    next = checkPickedRoom(option);
+                }
             }
         }
         sendMessage("You've picked room no." + roomNumber);
         System.out.println("NEW MESSAGE: " + "[Room " + roomNumber + "]: " + userName + " joined to the room");
         System.out.println("NEW MESSAGE: " + "[Room " + roomNumber + "]: Players [" + rooms.get(roomNumber - 1).getSize() + "/3]");
         refreshServerScreen();
+        refreshAllMenuDisplays();
     }
 
     boolean createNewRoom() {
@@ -305,8 +326,24 @@ public class ClientHandler implements Runnable {
         return buffer;
     }
 
+    public void setRoomNumber(int roomNumber) {
+        this.roomNumber = roomNumber;
+    }
+
     public String getUserName() {
         return this.userName;
+    }
+
+    public void setUserName(String userName) {
+        this.userName = userName;
+    }
+
+    public BufferedReader getBufferedReader() {
+        return bufferedReader;
+    }
+
+    public BufferedWriter getBufferedWriter() {
+        return bufferedWriter;
     }
 
     public void sendMessage(String message) {

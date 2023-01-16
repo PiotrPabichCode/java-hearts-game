@@ -61,4 +61,12 @@ public class Deck {
     public List<Card> getDeck() {
         return deck;
     }
+
+    public List<String> getCardNames() {
+        return cardNames;
+    }
+
+    public List<String> getCardTypes() {
+        return cardTypes;
+    }
 }
