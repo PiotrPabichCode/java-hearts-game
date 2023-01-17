@@ -8,16 +8,41 @@ import java.util.Random;
  */
 
 public class Deck {
+    /**
+     * Constant that covers maximum size of the deck
+     */
     static final int DECK_SIZE = 48;
+    /**
+     * Variable that stores all card names
+     */
     private List<String> cardNames = new ArrayList<>();
+    /**
+     * Variable that stores all card types
+     */
     private List<String> cardTypes = new ArrayList<>();
-    private List<Card> deck = new ArrayList<>();
+    /**
+     * Variable that stores all cards in deck
+     */
+    private ArrayList<Card> deck = new ArrayList<>();
+    /**
+     * Variable that stores current round card type
+     */
     static String currentCardType;
+    /**
+     * Variable that stores current round losing points
+     */
     private int losePoints;
 
+    /**
+     * Deck constructor
+     */
     Deck() {
         createDeck();
     }
+
+    /**
+     * Method that creates card names
+     */
 
     void createCardNames() {
         for(int i = 3; i <= 10; i++) {
@@ -29,6 +54,9 @@ public class Deck {
         cardNames.add("A");
     }
 
+    /**
+     * Method that creates card types
+     */
     void createCardTypes() {
         cardTypes.add("BLACK");
         cardTypes.add("RED");
@@ -36,12 +64,22 @@ public class Deck {
         cardTypes.add("GREEN");
     }
 
+    /**
+     * Method that sets current round card type
+     */
+
     void setCurrentCardType() {
         Random random = new Random();
         int choice = random.nextInt(cardTypes.size());
         currentCardType = cardTypes.get(choice);
-        losePoints = random.nextInt(20,100);
+        int lowerBound = 20;
+        int upperBound = 100;
+        losePoints = random.nextInt(lowerBound,upperBound);
     }
+
+    /**
+     * Method that creates deck
+     */
     void createDeck() {
         createCardNames();
         createCardTypes();
@@ -54,17 +92,31 @@ public class Deck {
         setCurrentCardType();
     }
 
+    /**
+     * Getter that gets lose points
+     */
     public int getLosePoints() {
         return losePoints;
     }
 
-    public List<Card> getDeck() {
+    /**
+     *  Getter that gets deck
+     */
+    public ArrayList<Card> getDeck() {
         return deck;
     }
+
+    /**
+     *  Getter that gets cardNames
+     */
 
     public List<String> getCardNames() {
         return cardNames;
     }
+
+    /**
+     *  Getter that gets cardTypes
+     */
 
     public List<String> getCardTypes() {
         return cardTypes;

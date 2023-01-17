@@ -7,17 +7,51 @@ import java.util.Random;
  * and functionalities that allow the Hearts game to work properly
  */
 public class Game {
+    /**
+     * Variable that stores room number
+     */
     private final int roomNumber;
+    /**
+     * Variable that stores deck
+     */
     private Deck deck;
+    /**
+     * Variable that stores ArrayList of players in game
+     */
     private final ArrayList<Player> players = new ArrayList<>();
+    /**
+     * Flag that checks if round is active
+     */
     boolean isActive = true;
+    /**
+     * Flag that checks if reset is available
+     */
     boolean resetFlag = true;
+    /**
+     * Flag that checks if server made actions
+     */
     boolean serverAction = false;
+    /**
+     * Variable that stores current round number
+     */
     private int round;
+    /**
+     * Constant that stores maximum number of players
+     */
     final int MAX_PLAYERS = 3;
+
+    /**
+     * Constant that stores maximum number of rounds
+     */
     final int TOTAL_ROUNDS = 7;
+    /**
+     * Constant that stores maximum number of cards in player deck
+     */
     final int PLAYER_DECK_SIZE;
 
+    /**
+     * Game constructor
+     */
     Game(int roomNumber){
         this.roomNumber = roomNumber;
         deck = new Deck();
@@ -25,8 +59,15 @@ public class Game {
         this.round = 1;
     }
 
+    /**
+     * Main game loop where all functionalites are used
+     */
+
     void gameLoop() {
-        while(isActive && players.size() != MAX_PLAYERS) {
+        round = 1;
+        resetFlag = true;
+        isActive = true;
+        while(players.size() != MAX_PLAYERS) {
             try {
                 Thread.sleep(2000);
             } catch (InterruptedException e) {
@@ -37,28 +78,38 @@ public class Game {
             if(round == 1) {
                 startGame();
             }
-            broadcastMessage("ROUND NUMBER " + round);
-            preparePlayerDecks();
-            while(isActive) {
-                String message = "[CARD TYPE / VALUE] = [" + Deck.currentCardType + " / " + deck.getLosePoints() + "]";
-                broadcastMessage(message);
-                displayPlayerDecks();
-                ArrayList<PickedCard> pickedCards = pickCards();
-                displayPickedCards(pickedCards);
-                calculatePoints(pickedCards);
-                checkEnd();
-            }
-            endRound(false, false);
+
+            normalRound();
             if(round > TOTAL_ROUNDS) {
                 endGame();
-                broadcastMessage("END GAME");
             }
             isActive = true;
         }
         deletePlayers();
-//        broadcastMessage("OUTSIDE LOOP");
     }
 
+    /**
+     * Method, which contains all the methods used in the case of a normal round
+     */
+
+    void normalRound() {
+        broadcastMessage("ROUND NUMBER " + round);
+        preparePlayerDecks();
+        while(isActive) {
+            String message = "[CARD TYPE / VALUE] = [" + Deck.currentCardType + " / " + deck.getLosePoints() + "]";
+            broadcastMessage(message);
+            displayPlayerDecks();
+            ArrayList<PickedCard> pickedCards = pickCards();
+            displayPickedCards(pickedCards);
+            calculatePoints(pickedCards);
+            checkEnd();
+        }
+        endRound(false, false);
+    }
+
+    /**
+     * Method that removes all current players from the game
+     */
     void deletePlayers() {
         for(int i = 0; i < players.size(); i++) {
             ClientHandler clientHandler = players.get(i).getClientHandler();
@@ -67,6 +118,11 @@ public class Game {
         }
         players.clear();
     }
+
+    /**
+     * Method that checks
+     *        if the game has reached the end
+     */
     boolean checkEnd() {
         if(deck.getDeck().size() == 0) {
             isActive = false;
@@ -75,9 +131,12 @@ public class Game {
         return false;
     }
 
+    /**
+     * Method that distributes random numbers among players
+     */
+
     void giveRandomPoints() {
         int cardsCounter = players.get(0).getDeck().getSize();
-        System.out.println("SIZE: " + cardsCounter);
         Random random = new Random();
         for(int i = 0; i < cardsCounter; i++) {
             for(int j = 0; j < players.size(); j++) {
@@ -89,17 +148,29 @@ public class Game {
         }
     }
 
+    /**
+     * Method that clears a player's current deck of cards
+     */
+
     void clearPlayerDecks() {
         for(int i = 0; i < players.size(); i++) {
             players.get(i).clearDeck();
         }
     }
 
+    /**
+     * Method that unlocks BufferedReader players
+     */
+
     void unblockReaders() {
         for(int i = 0; i < players.size(); i++) {
             players.get(i).getClientHandler().unblockReader();
         }
     }
+
+    /**
+     * Method that executes the methods used in the case of the end of the last round of the game
+     */
 
     void endLastRound(boolean isServer) {
         isActive = false;
@@ -110,6 +181,10 @@ public class Game {
             serverAction = false;
         }
     }
+
+    /**
+     * Method that executes the methods used in the case of the end of the normal round of the game
+     */
 
     void endNormalRound(boolean isServer, boolean isRandom) {
         if(isServer) {
@@ -122,11 +197,15 @@ public class Game {
         deck.setCurrentCardType();
         isActive = false;
         round++;
-        displayPoints(true);
+        displayPoints(true, true);
         if(!isRandom) {
             unblockReaders();
         }
     }
+
+    /**
+     * Method that executes the methods used in the case of the end of the round of the game
+     */
     void endRound(boolean isServer, boolean isRandom) {
         if(round > TOTAL_ROUNDS) {
             endLastRound(isServer);
@@ -139,6 +218,10 @@ public class Game {
         endNormalRound(isServer, isRandom);
     }
 
+    /**
+     * Method that ends the game by drawing random values between players
+     */
+
     void randomEndGame() {
         while(round < TOTAL_ROUNDS + 1) {
             endRound(false, true);
@@ -147,14 +230,22 @@ public class Game {
         unblockReaders();
     }
 
+    /**
+     * Method that ends the game
+     */
+
     void endGame() {
         broadcastMessage("-----------------------------------------\n" +
                          "Game ended\n");
-        displayPoints(true);
+        displayPoints(false, true);
         resetGame();
     }
 
-    void displayPoints(boolean isPlayers) {
+    /**
+     * Method that display players points
+     */
+
+    void displayPoints(boolean isServer, boolean isPlayers) {
         String roundMessage = (round == 8) ? "END GAME" : "Round number " + round;
         System.out.println("NEW MESSAGE: [Room " + roomNumber + "]: " + roundMessage);
         for(int i = 0; i < players.size(); i++) {
@@ -165,10 +256,14 @@ public class Game {
                 player.getClientHandler().sendMessage(message);
             }
         }
-        if(isPlayers) {
+        if(!isServer) {
             ClientHandler.refreshServerScreen();
         }
     }
+
+    /**
+     * Method that calculate players points after turn
+     */
 
     void calculatePoints(ArrayList<PickedCard> cards) {
         if(isActive && cards != null) {
@@ -186,6 +281,10 @@ public class Game {
             player.getClientHandler().sendMessage("You lost this turn: -" + deck.getLosePoints());
         }
     }
+
+    /**
+     * Method that pick card from player every turn
+     */
 
     PickedCard pickCard(Player player) {
         if(isActive) {
@@ -208,6 +307,10 @@ public class Game {
         return null;
     }
 
+    /**
+     * Method that display picked cards by players
+     */
+
     void displayPickedCards(ArrayList<PickedCard> cards) {
         if(isActive && cards != null) {
             broadcastMessage("Picked cards: ");
@@ -217,6 +320,10 @@ public class Game {
             }
         }
     }
+
+    /**
+     * Method that pick cards from all players
+     */
 
     ArrayList<PickedCard> pickCards() {
         if(isActive) {
@@ -242,11 +349,19 @@ public class Game {
         return null;
     }
 
+    /**
+     * Method that broadcast message between all players
+     */
+
     void broadcastMessage(String message) {
         for(int i = 0; i < players.size(); i++) {
             players.get(i).getClientHandler().sendMessage(message);
         }
     }
+
+    /**
+     * Method that shuffles the cards and distributes them among the players
+     */
 
     void shuffleCards() {
         Collections.shuffle(deck.getDeck());
@@ -261,11 +376,19 @@ public class Game {
         }
     }
 
+    /**
+     * Method that prepares players decks
+     */
+
     void preparePlayerDecks() {
         deck.createDeck();
         shuffleCards();
         deck.setCurrentCardType();
     }
+
+    /**
+     * Method that display players decks
+     */
 
     void displayPlayerDecks() {
         if(isActive) {
@@ -277,6 +400,10 @@ public class Game {
         }
     }
 
+    /**
+     * Getter that get player by his client handler
+     */
+
     Player getPlayer(ClientHandler clientHandler) {
         for(int i = 0; i < players.size(); i++) {
             Player player = players.get(i);
@@ -287,15 +414,27 @@ public class Game {
         return null;
     }
 
+    /**
+     * Setter that add player by his client handler
+     */
+
     void addPlayer(ClientHandler clientHandler) {
         Player player = new Player(clientHandler, clientHandler.getUserName());
         players.add(player);
     }
 
+    /**
+     * Setter that delete player by his client handler
+     */
+
     void deletePlayer(ClientHandler clientHandler) {
         Player player = getPlayer(clientHandler);
         players.remove(player);
     }
+
+    /**
+     * Method that starts game
+     */
 
     void startGame() {
         String message = "Room nr." + roomNumber + " game is starting...";
@@ -303,6 +442,10 @@ public class Game {
         broadcastMessage("---------------------------------------\n" + message);
         ClientHandler.refreshServerScreen();
     }
+
+    /**
+     * Method that display players
+     */
 
     void displayPlayers() {
         System.out.println("NEW MESSAGE: [Room " + roomNumber + "]: " + "Currently playing");
@@ -318,17 +461,33 @@ public class Game {
         ClientHandler.refreshServerScreen();
     }
 
+    /**
+     * Getter that gets roomNumber
+     */
+
     public int getRoomNumber() {
         return roomNumber;
     }
+
+    /**
+     * Getter that gets round
+     */
 
     public int getRound() {
         return round;
     }
 
+    /**
+     * Getter that gets players
+     */
+
     public ArrayList<Player> getPlayers() {
         return players;
     }
+
+    /**
+     * Method that resets game
+     */
 
     void resetGame() {
         broadcastMessage("Would you like to play again?\n" +
@@ -350,6 +509,8 @@ public class Game {
                 players.get(i).resetPoints();
             }
             broadcastMessage("GAME STARTS AGAIN!!!");
+        } else {
+            broadcastMessage("END GAME");
         }
     }
 }

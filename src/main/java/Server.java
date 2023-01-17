@@ -9,20 +9,54 @@ import java.util.Scanner;
  */
 
 public class Server {
+    /**
+     * Variable that stores Server PORT
+     */
     private static int PORT = 1410;
+    /**
+     * Variable that stores ServerSocket
+     */
     private final ServerSocket serverSocket;
+    /**
+     * Flag that checks is server is active
+     */
     private boolean isActive = true;
+    /**
+     * Variable that stores ArrayList of ClientHandlers
+     */
     private ArrayList<ClientHandler> clientHandlers = new ArrayList<>();
+    /**
+     * Constant for display room option
+     */
     final int DISPLAY_ROOMS = 1;
+    /**
+     * Constant for display player option
+     */
     final int DISPLAY_PLAYERS = 2;
+    /**
+     * Constant for display results option
+     */
     final int DISPLAY_RESULTS = 3;
+    /**
+     * Constant for end round option
+     */
     final int END_ROUND = 4;
+    /**
+     * Constant for end game option
+     */
     final int END_GAME = 5;
+
+    /**
+     * Server constructor
+     */
 
     public Server(ServerSocket serverSocket){
         this.serverSocket = serverSocket;
     }
 
+    /**
+     * Server main method
+     */
     public static void main(String[] args){
         try{
             ServerSocket serverSocket = new ServerSocket(PORT);
@@ -34,6 +68,10 @@ public class Server {
             System.exit(1);
         }
     }
+
+    /**
+     * Method thats starts server
+     */
 
     public void startServer(){
         try{
@@ -50,15 +88,22 @@ public class Server {
         }
     }
 
+    /**
+     * Method that display results option
+     */
     private void displayResultsOption(ClientHandler clientHandler) {
         int count = clientHandler.displayFullRooms();
         if(count != 0) {
             int pickedRoom = getInteger(0, count);
             if(pickedRoom != 0) {
-                clientHandler.getRoom(pickedRoom).game.displayPoints(false);
+                clientHandler.getRoom(pickedRoom).game.displayPoints(true, false);
             }
         }
     }
+
+    /**
+     * Method that display end round option
+     */
 
     private void endRoundOption(ClientHandler clientHandler) {
         int count = clientHandler.displayFullRooms();
@@ -70,6 +115,10 @@ public class Server {
         }
     }
 
+    /**
+     * Method that display end game option
+     */
+
     private void endGameOption(ClientHandler clientHandler) {
         int count = clientHandler.displayFullRooms();
         if(count != 0) {
@@ -80,10 +129,13 @@ public class Server {
         }
     }
 
+    /**
+     * Main loop where server can pick options
+     */
+
     private void serverMainLoop() {
         ClientHandler clientHandler = clientHandlers.get(0);
         while (!serverSocket.isClosed()) {
-            ClientHandler.refreshServerScreen();
             int lowerBound = 1;
             int upperBound = 5;
             int option = getInteger(lowerBound, upperBound);
@@ -108,6 +160,10 @@ public class Server {
             }
         }
     }
+
+    /**
+     * Thread that listens for server input
+     */
     public void listenForServerInput() {
         new Thread(new Runnable() {
             @Override
@@ -127,10 +183,15 @@ public class Server {
         }).start();
     }
 
+    /**
+     * Method that get integer between lowerBound and upperBound
+     */
+
     public int getInteger(int minValue, int maxValue) {
         int choice = 0;
         boolean exit = false;
         while(!exit){
+            ClientHandler.refreshServerScreen();
             try{
                 String buffer = Client.scanner.nextLine();
                 choice = Integer.parseInt(buffer);
@@ -141,10 +202,13 @@ public class Server {
             catch(Exception e){
                 System.out.println("The given value is not a number! Try again.");
             }
-            ClientHandler.refreshServerScreen();
         }
         return choice;
     }
+
+    /**
+     * Method that closes server socket
+     */
     public void closeServerSocket(){
         try{
             if(serverSocket != null){

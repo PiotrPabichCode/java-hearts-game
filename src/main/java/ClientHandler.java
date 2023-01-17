@@ -11,21 +11,62 @@ import java.util.List;
 
 public class ClientHandler implements Runnable {
 
+    /**
+     * Variable that stores ArrayList of ClientHandler
+     */
     public static ArrayList<ClientHandler> clientHandlers = new ArrayList<>();
+    /**
+     * Variable that stores all rooms
+     */
     public static ArrayList<Room> rooms = new ArrayList<>();
+    /**
+     * Variable that stores Socket
+     */
     private Socket socket;
+    /**
+     * Variable that stores BufferedReader
+     */
     private BufferedReader bufferedReader;
+    /**
+     * Variable that stores BufferedWriter
+     */
     private BufferedWriter bufferedWriter;
+    /**
+     * Variable that stores userName
+     */
     private String userName;
+    /**
+     * Flag that checks if client is logged
+     */
     private boolean isLogged = false;
+    /**
+     * Constant if player doesn't have room
+     */
     final int NO_ROOM = -1;
+    /**
+     * Variable that stores player room number
+     */
     private int roomNumber = NO_ROOM;
-
+    /**
+     * Constant for picking register account option
+     */
     final int REGISTER_ACCOUNT = 1;
+    /**
+     * Constant for picking login account option
+     */
     final int LOGIN_ACCOUNT = 2;
+    /**
+     * Constant for maximum players of room
+     */
     final int MAX_PLAYERS_PER_ROOM = 3;
+    /**
+     * Constant that stores error value for GetInteger
+     */
     final int EXIT_VALUE = -10;
 
+    /**
+     * ClientHandler constructor
+     */
     public ClientHandler(Socket socket) {
         try {
             this.socket = socket;
@@ -40,6 +81,10 @@ public class ClientHandler implements Runnable {
             closeAll();
         }
     }
+
+    /**
+     * Method run that implements Runnable interface
+     */
 
     @Override
     public void run() {
@@ -61,6 +106,9 @@ public class ClientHandler implements Runnable {
         isLogged = false;
     }
 
+    /**
+     * Getter that gets room by its number
+     */
     Room getRoom(int number) {
         for(int i = 0; i < rooms.size(); i++) {
             Room currRoom = rooms.get(i);
@@ -71,11 +119,19 @@ public class ClientHandler implements Runnable {
         return null;
     }
 
+    /**
+     * Method that refresh menu display
+     */
+
     void refreshMenuDisplay() {
         sendMessage("Enter one of available options\n" +
                     "0. Create new room");
         displayRooms(false);
     }
+
+    /**
+     * Method that refresh menu for all clients who are on this display
+     */
 
     void refreshAllMenuDisplays() {
         for(int i = 0; i < clientHandlers.size(); i++) {
@@ -85,6 +141,10 @@ public class ClientHandler implements Runnable {
             }
         }
     }
+
+    /**
+     * Method that picks room for client
+     */
 
     void pickRoom() {
         boolean next = false;
@@ -109,6 +169,9 @@ public class ClientHandler implements Runnable {
         refreshAllMenuDisplays();
     }
 
+    /**
+     * Method that creates new room
+     */
     boolean createNewRoom() {
         int number = rooms.get(rooms.size() - 1).getNumber() + 1;
         rooms.add(new Room(number,1, new Game(number)));
@@ -119,6 +182,9 @@ public class ClientHandler implements Runnable {
         return true;
     }
 
+    /**
+     * Method that gets room by its room number and checks if its picked
+     */
     boolean checkPickedRoom(int roomNumber) {
         Room room = rooms.get(roomNumber - 1);
         if(room.getSize() != MAX_PLAYERS_PER_ROOM) {
@@ -132,6 +198,9 @@ public class ClientHandler implements Runnable {
         return false;
     }
 
+    /**
+     * Method that displays all rooms
+     */
     void displayRooms(boolean isServer) {
         for(int i = 0; i < rooms.size(); i++) {
             int pos = i + 1;
@@ -145,6 +214,10 @@ public class ClientHandler implements Runnable {
         }
     }
 
+    /**
+     * Method that displays all players
+     */
+
     void displayPlayers() {
         System.out.println("Active players on server");
         for(int i = 0; i < clientHandlers.size(); i++) {
@@ -153,6 +226,10 @@ public class ClientHandler implements Runnable {
             System.out.println(position + ". " +"[Room " + clientHandler.roomNumber + "]: " + clientHandler.userName);
         }
     }
+
+    /**
+     * Method that displays all full rooms
+     */
 
     int displayFullRooms() {
         int count = 0;
@@ -172,6 +249,10 @@ public class ClientHandler implements Runnable {
         return count;
     }
 
+    /**
+     * Method that refresh server screen
+     */
+
     public static void refreshServerScreen() {
         System.out.println("---------------------------------------\n" +
                 "Pick one of available options: \n" +
@@ -183,6 +264,9 @@ public class ClientHandler implements Runnable {
                 "Your choice: ");
     }
 
+    /**
+     * Method that validates user by login and password
+     */
 
     void validateUser() {
         boolean correct = false;
@@ -209,6 +293,9 @@ public class ClientHandler implements Runnable {
         sendMessage("Welcome!!!");
     }
 
+    /**
+     * Method that registers user by login and password
+     */
     boolean registerAccount(String login, String password) {
         boolean exists = checkAccountExistence(login, password);
         if(exists) {
@@ -230,6 +317,9 @@ public class ClientHandler implements Runnable {
         }
     }
 
+    /**
+     * Method that sign-in user by login and password
+     */
     boolean loginAccount(String login, String password) {
         boolean exists = checkAccountExistence(login, password);
         if(exists) {
@@ -248,6 +338,9 @@ public class ClientHandler implements Runnable {
         }
     }
 
+    /**
+     * Method that checks if account is already in database
+     */
     boolean checkAccountExistence(String login, String password) {
         try {
             File file = new File("users.txt");
@@ -264,13 +357,26 @@ public class ClientHandler implements Runnable {
         }
     }
 
+    /**
+     * Flag that checks if unblocking reader is necessary
+     */
     boolean unblockReader = false;
+    /**
+     * Flag that checks if leaving GetInteger loop is necessary
+     */
     boolean exit = false;
+
+    /**
+     * Method that unblock bufferedReader
+     */
     public void unblockReader() {
         exit = true;
         unblockReader = true;
     }
 
+    /**
+     * Method that gets integer between minimum value and maximum value
+     */
     public int getInteger(int minValue, int maxValue) {
         int choice = 0;
         boolean again = true;
@@ -305,6 +411,10 @@ public class ClientHandler implements Runnable {
         return choice;
     }
 
+
+    /**
+     * Method that gets string with terminal message
+     */
     String getData(String message) {
         boolean exit = false;
         String buffer = "";
@@ -326,25 +436,25 @@ public class ClientHandler implements Runnable {
         return buffer;
     }
 
+    /**
+     * Setter that sets room number
+     */
+
     public void setRoomNumber(int roomNumber) {
         this.roomNumber = roomNumber;
     }
+
+    /**
+     * Getter that gets username
+     */
 
     public String getUserName() {
         return this.userName;
     }
 
-    public void setUserName(String userName) {
-        this.userName = userName;
-    }
-
-    public BufferedReader getBufferedReader() {
-        return bufferedReader;
-    }
-
-    public BufferedWriter getBufferedWriter() {
-        return bufferedWriter;
-    }
+    /**
+     * Method that sends message to client
+     */
 
     public void sendMessage(String message) {
         try {
@@ -356,11 +466,19 @@ public class ClientHandler implements Runnable {
         }
     }
 
+    /**
+     * Method that removes client handler from arraylist
+     */
+
 
     public void removeClientHandler() {
         clientHandlers.remove(this);
     }
 
+
+    /**
+     * Method that removes client handler from arraylist and closes all streams
+     */
     public void closeAll() {
         removeClientHandler();
         try {

@@ -1,6 +1,14 @@
+import java.util.Collections;
+
 import static org.junit.jupiter.api.Assertions.*;
 
+/**
+ * JUnit that checks project classes
+ */
 class ClassesTest {
+    /**
+     * Test that checks Card class
+     */
     @org.junit.jupiter.api.Test
     public void createCardTest() {
         Card card = new Card("BLUE", 10, "2");
@@ -10,6 +18,9 @@ class ClassesTest {
         assertEquals(card.getName(), "2");
     }
 
+    /**
+     * Test that checks Deck class
+     */
     @org.junit.jupiter.api.Test
     public void createDeckTest() {
         Deck deck = new Deck();
@@ -20,7 +31,9 @@ class ClassesTest {
         assertEquals(deck.getCardTypes().size(), cardTypesSize);
         assertEquals(deck.getDeck().get(7).getName(), "4");
     }
-
+    /**
+     * Test that checks Game class
+     */
     @org.junit.jupiter.api.Test
     public void createGameTest() {
         int roomNumber = 10;
@@ -29,7 +42,9 @@ class ClassesTest {
         assertEquals(game.getRound(), 1);
         assertEquals(game.getPlayers().size(), 0);
     }
-
+    /**
+     * Test that checks Room class
+     */
     @org.junit.jupiter.api.Test
     public void createRoomTest() {
         int roomNumber = 10;
@@ -43,7 +58,9 @@ class ClassesTest {
         assertEquals(room.game.getRoomNumber(), room.getNumber());
 
     }
-
+    /**
+     * Test that checks Player class
+     */
     @org.junit.jupiter.api.Test
     public void createPlayerTest() {
         String playerName = "Tomek";
@@ -53,7 +70,9 @@ class ClassesTest {
         assertEquals(player.getDeck().getSize(), 0);
         assertEquals(player.getPlace(), 0);
     }
-
+    /**
+     * Test that checks PlayerDeck class
+     */
     @org.junit.jupiter.api.Test
     public void createPlayerDeck() {
         String playerName = "Tomek";
@@ -63,7 +82,9 @@ class ClassesTest {
         assertEquals(playerDeck.getSize(), 0);
         assertEquals(playerDeck.getPlayer(), player);
     }
-
+    /**
+     * Test that checks PickedDeck class
+     */
     @org.junit.jupiter.api.Test
     public void createPickedDeck() {
         String playerName = "Karol";
